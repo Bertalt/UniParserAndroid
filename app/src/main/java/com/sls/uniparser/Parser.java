@@ -9,26 +9,24 @@ import java.util.concurrent.*;
 
 public class Parser  extends AsyncTask<Void,Void,Boolean>{
 
+    private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+    private static final int CORE_POOL_SIZE = CPU_COUNT + 1;
     private CustomUrl mURL;
     private int mTaskDepth;
     private LinkedHashSet<CustomUrl> firstStep;
-    private int mAvailableThreads;
     private ExecutorService mExecutor;
-    private ArrayList<Thread>mThreadList;
+    private ArrayList<ThreadParser>mThreadList;
 
     public Parser(CustomUrl URL, int depth)
     {
         mURL = new CustomUrl(URL.getHome(),URL.getPath());
         mTaskDepth =depth;
         firstStep = new LinkedHashSet<>();
-
-
-        mAvailableThreads = Runtime.getRuntime().availableProcessors();//return amount of processes which OS could give
-        if (mAvailableThreads <=1)
-            mAvailableThreads = 2;                                     //2 threads better than 1
-        mExecutor = Executors.newFixedThreadPool(mAvailableThreads);
-        System.out.println("Available threads:  "+ mAvailableThreads);
+                                     //2 threads better than 1
+        mExecutor = Executors.newFixedThreadPool(CORE_POOL_SIZE);
+        System.out.println("Available threads:  "+ CORE_POOL_SIZE);
         mThreadList = new ArrayList<>();
+        //Thread.currentThread().setDaemon(true);
 
     }
 
@@ -42,16 +40,8 @@ public class Parser  extends AsyncTask<Void,Void,Boolean>{
         if (mTaskDepth <= 1)                //1 depth = 1 walk
             return;
 
-       if(mAvailableThreads ==1)
-       {
-           initThread(new ThreadParser(firstStep, mTaskDepth, ++tmp_count));
-           firstStep.clear();
-           this.cancel(true);
-           return;
-       }
 
-
-       int coef = firstStep.size() / mAvailableThreads;    // distribution links between threads
+       int coef = firstStep.size() / CORE_POOL_SIZE;    // distribution links between threads
        LinkedHashSet<CustomUrl> prepareTask = new LinkedHashSet<>();
 
        while(!firstStep.isEmpty()) {
@@ -79,7 +69,7 @@ public class Parser  extends AsyncTask<Void,Void,Boolean>{
 
        }
 
-       private void  initThread(Thread thread)
+       private void  initThread(ThreadParser thread)
     {
         thread.setDaemon(true);
         mThreadList.add(thread);
@@ -92,11 +82,12 @@ public class Parser  extends AsyncTask<Void,Void,Boolean>{
     protected void onCancelled()
     {
         super.onCancelled();
-        for(Thread tmp : mThreadList)
+        for(ThreadParser tmp : mThreadList)
         {
             Log.d("PARSER3", tmp.getName() + " should be interrupt");
-            tmp.interrupt();
+            tmp.stopIt();
         }
+
         setThisNull();
     }
 
