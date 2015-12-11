@@ -1,7 +1,5 @@
 package com.sls.uniparser;
 
-import android.content.Intent;
-
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -28,18 +26,20 @@ public class ThreadParser extends Thread  {
     {
         if (task!= null)
             if(task.size()>0) {
-                blockingTask = new ArrayBlockingQueue<CustomUrl>(task.size());
+                blockingTask = new ArrayBlockingQueue<>(task.size());
                 blockingTask.addAll(task);
                 mSetForNextStep.clear();
             }
     }
 
-    private boolean isDone()
+    private boolean startParsing()
     {
         while (!blockingTask.isEmpty())
         {
             ParsingWork mParsing = new ParsingWork(blockingTask.poll());
-            mSetForNextStep.addAll( mParsing.goAhead());
+            mSetForNextStep.addAll( mParsing.goAhead());//ParsingWork.goAhead() return list of links for next step
+            if (Thread.currentThread().isInterrupted())
+                return true;
         }
 
         return true;
@@ -48,20 +48,17 @@ public class ThreadParser extends Thread  {
     @Override
     public void run() {
 
-        System.out.println("Thread #"+ mThreadId+" starting");
 
-        while(mTaskDepth > mCurrentDepth) {
+        while(mTaskDepth > mCurrentDepth && !Thread.currentThread().isInterrupted()) {
+
             System.out.println("Thread #"+mThreadId+" on the "+mCurrentDepth+" step");
-            while (!isDone()) {
-
-                System.out.println("LAG");
-            }
+            startParsing();
             System.out.println("Thread #"+mThreadId+ " done step #"+mCurrentDepth);
-                mCurrentDepth++;
-
+            mCurrentDepth++;
+            setQueueTask(mSetForNextStep);
         }
 
-        Thread.currentThread().interrupt();
+
 
     }
 

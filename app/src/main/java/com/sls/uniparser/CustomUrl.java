@@ -23,7 +23,6 @@ public class CustomUrl {
         mHome = home;
     }
 
-
     @Override
     public String toString()
     {
@@ -35,9 +34,6 @@ public class CustomUrl {
     {
         if(obj == this)
             return true;
-
-     /* obj ссылается на null */
-
         if(obj == null)
             return false;
 
@@ -48,10 +44,7 @@ public class CustomUrl {
         else
         {
             CustomUrl tmp = (CustomUrl) obj;
-            if(tmp.toString().equals(this.toString()))
-                return true;
-            else
-                return false;
+            return tmp.toString().equals(this.toString());
         }
     }
 
@@ -60,7 +53,6 @@ public class CustomUrl {
         int result = 0;
         for (char anArrayChar : arrayChar)
             result += anArrayChar * 31 ^ (arrayChar.length - 1);
-
         return result;
     }
 

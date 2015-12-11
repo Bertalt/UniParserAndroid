@@ -14,12 +14,10 @@ import java.util.Set;
 
 public class CustomAdapter extends BaseAdapter {
 
-    private Context mCtx;
     private LayoutInflater lInflater;
     private static Set<String> mCurrentSetEmail;
 
     CustomAdapter(Context ctx, Set<String> setEmails) {
-        mCtx = ctx;
 
         lInflater = (LayoutInflater) ctx
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -65,7 +63,7 @@ public class CustomAdapter extends BaseAdapter {
         }
         String tmp = (String) getItem(position);
         TextView rawEmail= (TextView)view.findViewById(R.id.textEmail);
-        rawEmail.setText(tmp.toString());
+        rawEmail.setText(tmp);
 
         return view;
     }

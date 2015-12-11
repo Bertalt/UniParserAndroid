@@ -32,30 +32,33 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends AppCompatActivity {
 
 
-    private final int TIMER_QUANT = 1000; //ms
-    private final int TIMER_DELAY = 100;
+    final int TIMER_QUANT = 1000;    // for timer task (ms)
+    final int TIMER_DELAY = 100;     //  .... (ms)
+    final int MIN_LEN_URL=11;
+    final int LEN_URL_PROTOCOL = 8;
+
     private Button mButtonControl;
     private ProgressBar mProgress;
     private ListView mListViewEmails;
     private TextView mProgressText;
     private Spinner mSpinner;
     private EditText mEditUrl;
+
     private static CustomAdapter mCustomAdapter;
-    private static HashSet<String> mSetEmails;
+    private HashSet<String> mSetEmails;
+    private HashSet<String> mSetForList;
     public static Set<String> mSynchronSet;
     private Parser mParser;
+
     private Timer mTimer;
-    private MyTimerTask mMyTimerTask;
-
-    //private TextView mTextFoundEmail;
+    private MyTimerTask mMyTimerTask;       //update list of emails by timer
 
 
-    private boolean isStart =false;
-    private final int MIN_LEN_URL=11;
-    private final int LEN_URL_PROTOCOL = 8;
+
+    private boolean isStart =false;         // indicator of parser
     private int mDepthParsing = 1;
 
-    private Integer [] mListDepth = {1,2,3,4,5};
+    private Integer [] mListDepth = {1,2,3,4,5}; //available depth [use in spinner]
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
     private void initEditUrl()
     {
         mEditUrl = (EditText)findViewById(R.id.editURL);
-
     }
 
     private void initProgress()
@@ -91,7 +93,10 @@ public class MainActivity extends AppCompatActivity {
                     startParsing();
                     return;
                 }
-                startParsing();
+                if (!isStart)
+                    startParsing();
+                else
+                    stopPars();
             }
         });
     }
@@ -101,7 +106,8 @@ public class MainActivity extends AppCompatActivity {
         mSynchronSet = Collections.synchronizedSet(mSetEmails);
 
         ListView lvEmail = (ListView)findViewById(R.id.listEmail);
-        mCustomAdapter = new CustomAdapter(this,mSynchronSet);
+        mSetForList = new HashSet<>();
+        mCustomAdapter = new CustomAdapter(this,mSetForList);
 
         lvEmail.setAdapter(mCustomAdapter);
     }
@@ -119,7 +125,6 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 mDepthParsing = position+1;
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
@@ -144,23 +149,20 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this,getResources().getString(R.string.toastDepthError),Toast.LENGTH_SHORT).show();
             return;
         }
-
-
         if (URL.contains("http"))
         {
             if (mTimer != null) {
                 mTimer.cancel();
             }
 
-            String URL_path = URL.substring(URL.indexOf("/",LEN_URL_PROTOCOL));
-            URL = URL.replace(URL_path,"");
-            Log.d("PARSER3",""+mDepthParsing);
-            mParser = new Parser(new CustomUrl(URL, URL_path), mDepthParsing);
+            String URL_sub = URL.substring(URL.indexOf("/",LEN_URL_PROTOCOL));
+            URL = URL.replace(URL_sub,"");
+            mParser = new Parser(new CustomUrl(URL, URL_sub), mDepthParsing);   // (URL for first run, maximal depth for parsing)
             mParser.execute();
             startParsView();
-           mTimer = new Timer();
-           mMyTimerTask = new MyTimerTask();
-          mTimer.schedule(mMyTimerTask, TIMER_DELAY, TIMER_QUANT);
+            mTimer = new Timer();
+            mMyTimerTask = new MyTimerTask();
+            mTimer.schedule(mMyTimerTask, TIMER_DELAY, TIMER_QUANT);
             isStart = true;
 
         }
@@ -171,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void startParsView()
+    public void startParsView()         //prepare UI elements before parsing
     {
         mProgressText.setVisibility(View.VISIBLE);
         mProgressText.setText(getResources().getString(R.string.text_progress));
@@ -180,21 +182,21 @@ public class MainActivity extends AppCompatActivity {
         mButtonControl.setText(getResources().getText(R.string.btnStop));
         mSynchronSet.clear();
         mCustomAdapter.notifyDataSetChanged();
-        mButtonControl.setEnabled(false);
+      //  mButtonControl.setEnabled(false);
     }
 
-    public void stopPars()
+    public void stopPars()              //prepare UI & AsyncTask after parsing
     {
         mProgressText.setVisibility(View.INVISIBLE);
         mProgress.setVisibility(View.INVISIBLE);
         mEditUrl.setEnabled(isStart);
         mButtonControl.setText(getResources().getText(R.string.btnStart));
+        mParser.cancel(true);
+        mParser = null;
                 if (mTimer != null) {
                 mTimer.cancel();
                 mTimer = null;
             }
-
-                mButtonControl.setEnabled(true);
                 isStart = false;
         }
 
@@ -205,26 +207,26 @@ public class MainActivity extends AppCompatActivity {
         return cm.getActiveNetworkInfo() != null;
     }
 
-
-
     class MyTimerTask extends TimerTask {
 
         @Override
-        public void run() {
+        public void run() {         //Run every TIMER_QUANT & update ListView
 
 
             runOnUiThread(new Runnable() {
                 @UiThread
                 @Override
                 public void run() {
-                   if ( mCustomAdapter!= null) mCustomAdapter.notifyDataSetChanged();
+                   if ( mCustomAdapter!= null) {
+                       mSetForList.clear();
+                       mSetForList.addAll(mSynchronSet);
+                       mCustomAdapter.notifyDataSetChanged();
+                   }
                     if (mParser!=null)
                         if(mParser.isCancelled())
                         {
-                            mParser = null;
                             stopPars();
                             Thread.currentThread().interrupt();
-
                         }
                 }
             });

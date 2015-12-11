@@ -1,28 +1,20 @@
 package com.sls.uniparser;
 
-import android.content.Context;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.widget.Toast;
 
-import java.lang.reflect.Array;
-import java.net.InetAddress;
+import android.os.AsyncTask;
+import android.util.Log;
 import java.util.*;
 import java.util.concurrent.*;
 
-/**
- * Created by Serg on 09.12.2015.
- */
-public class Parser  extends AsyncTask<CustomUrl,String,Boolean>{
+
+public class Parser  extends AsyncTask<Void,Void,Boolean>{
 
     private CustomUrl mURL;
     private int mTaskDepth;
     private LinkedHashSet<CustomUrl> firstStep;
     private int mAvailableThreads;
     private ExecutorService mExecutor;
-    private ArrayList<Future> mFutureList;
+    private ArrayList<Thread>mThreadList;
 
     public Parser(CustomUrl URL, int depth)
     {
@@ -31,46 +23,46 @@ public class Parser  extends AsyncTask<CustomUrl,String,Boolean>{
         firstStep = new LinkedHashSet<>();
 
 
-        mAvailableThreads = Runtime.getRuntime().availableProcessors();
+        mAvailableThreads = Runtime.getRuntime().availableProcessors();//return amount of processes which OS could give
+        if (mAvailableThreads <=1)
+            mAvailableThreads = 2;                                     //2 threads better than 1
         mExecutor = Executors.newFixedThreadPool(mAvailableThreads);
-        mFutureList = new ArrayList<>();
+        System.out.println("Available threads:  "+ mAvailableThreads);
+        mThreadList = new ArrayList<>();
 
     }
 
-   private void run() {
+   private void runTask() {
 
        ParsingWork mParsing = new ParsingWork(mURL);
-       firstStep = mParsing.goAhead();
+       firstStep = mParsing.goAhead();      //First walk of parser
 
-        int tmp_count= 0;
+        int tmp_count= 0;                   // counter of threads
 
-        if (mTaskDepth <= 1)
+        if (mTaskDepth <= 1)                //1 depth = 1 walk
             return;
 
+       if(mAvailableThreads ==1)
+       {
+           initThread(new ThreadParser(firstStep, mTaskDepth, ++tmp_count));
+           firstStep.clear();
+           this.cancel(true);
+           return;
+       }
 
-        int coef = firstStep.size() / mAvailableThreads;
-        System.out.println("Available threads:  "+ mAvailableThreads);
-        LinkedHashSet<CustomUrl> prepareTask = new LinkedHashSet<>();
+
+       int coef = firstStep.size() / mAvailableThreads;    // distribution links between threads
+       LinkedHashSet<CustomUrl> prepareTask = new LinkedHashSet<>();
+
        while(!firstStep.isEmpty()) {
 
-
-           if(mAvailableThreads ==1)
-           {
-               mExecutor.submit(new ThreadParser(firstStep,mTaskDepth, ++tmp_count));
-               firstStep.clear();
-               break;
-           }
-
             prepareTask.clear();
-
-            if (firstStep.size() < coef*2)
+            if (firstStep.size() < coef*2)              //if list of links less than for 2 threads - load all links in 1
             {
                 prepareTask.addAll(firstStep);
-                Thread prepareThread = new ThreadParser(prepareTask, mTaskDepth, ++tmp_count);
-                prepareThread.setDaemon(true);
-               mFutureList.add(mExecutor.submit(prepareThread));
+                initThread(new ThreadParser(prepareTask, mTaskDepth, ++tmp_count));
                 firstStep.clear();
-                break;
+                continue;
             }
 
             int counter =0;
@@ -81,42 +73,61 @@ public class Parser  extends AsyncTask<CustomUrl,String,Boolean>{
                     break;
             }
 
-           Thread prepareThread = new ThreadParser(prepareTask, mTaskDepth, ++tmp_count);
-           prepareThread.setDaemon(true);
-           mFutureList.add(mExecutor.submit(prepareThread));
+           initThread(new ThreadParser(prepareTask, mTaskDepth, ++tmp_count));
             firstStep.removeAll(prepareTask);
-
         }
 
+       }
+
+       private void  initThread(Thread thread)
+    {
+        thread.setDaemon(true);
+        mThreadList.add(thread);
+        mExecutor.submit(thread);
+    }
 
 
+
+    @Override
+    protected void onCancelled()
+    {
+        super.onCancelled();
+        for(Thread tmp : mThreadList)
+        {
+            Log.d("PARSER3", tmp.getName() + " should be interrupt");
+            tmp.interrupt();
+        }
+        setThisNull();
     }
 
     @Override
-    protected Boolean doInBackground(CustomUrl... params) {
+    protected Boolean doInBackground(Void... params) {
 
-
-        run();
+        runTask();
         mExecutor.shutdown();
         try {
             mExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Thread.currentThread().interrupt();
+
         return true;
     }
 
     @Override
     protected void onPostExecute(Boolean result) {
         super.onPostExecute(result);
-        mExecutor = null;
-        mURL = null;
-        mFutureList = null;
-        firstStep = null;
         this.cancel(true);
 
+    }
 
+    private void setThisNull()      //try to kill this object
+    {
+        mExecutor = null;
+        mURL = null;
+        firstStep = null;
+        mThreadList = null;
+        Thread.currentThread().interrupt();
     }
 
 }
