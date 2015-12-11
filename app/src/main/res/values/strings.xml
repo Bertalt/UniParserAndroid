@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">UniParser</string>
+    <string name="tvURL">URL:</string>
+    <string name="tvEmails">Found emails:</string>
+    <string name="tvProgress">Simple progress...</string>
+    <string name="btnStart">Parsing</string>
+
+    <string name="btnStop"> Stop</string>
+       <string name="tv_example_url">Example: http://mysite.com</string>
+    <string name="toastIncorrectProtocol">Incorrect protocol in URL</string>
+    <string name="toastToShortUrl">To short URL</string>
+    <string name="toastDisconnect">Cannot get internet connection.</string>
+    <string name="text_progress">Parsing of site...</string>
+    <string name="spinnerPromt">Depth of parsing</string>
+    <string name="toastDepthError">Select depth of parsing</string>
+</resources>
