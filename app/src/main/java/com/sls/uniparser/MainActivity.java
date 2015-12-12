@@ -149,14 +149,22 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this,getResources().getString(R.string.toastDepthError),Toast.LENGTH_SHORT).show();
             return;
         }
-        if (URL.contains("http"))
+        if (URL.contains("http") || URL.contains("https"))
         {
             if (mTimer != null) {
                 mTimer.cancel();
             }
 
-            String URL_sub = URL.substring(URL.indexOf("/",LEN_URL_PROTOCOL));
-            URL = URL.replace(URL_sub,"");
+
+
+            int tmp = URL.indexOf("/",URL.length()-1);
+
+            if  (tmp != -1)
+                    URL = URL.substring(0,URL.length()-1);
+
+            String URL_sub = "/";
+            //URL = URL.replace(URL_sub,"");
+            Log.d("TAG", URL+URL_sub);
             mParser = new Parser(new CustomUrl(URL, URL_sub), mDepthParsing);   // (URL for first run, maximal depth for parsing)
             mParser.execute();
             startParsView();
@@ -170,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
         {
            Toast.makeText(this,getResources().getString(R.string.toastIncorrectProtocol),Toast.LENGTH_LONG).show();
         }
+
     }
 
 
@@ -190,6 +199,8 @@ public class MainActivity extends AppCompatActivity {
         mProgressText.setVisibility(View.INVISIBLE);
         mProgress.setVisibility(View.INVISIBLE);
         mEditUrl.setEnabled(isStart);
+        if (mSynchronSet.isEmpty())
+            Toast.makeText(this,getResources().getString(R.string.toastNothingFound),Toast.LENGTH_LONG).show();
         mButtonControl.setText(getResources().getText(R.string.btnStart));
         mParser.cancel(true);
         mParser = null;
