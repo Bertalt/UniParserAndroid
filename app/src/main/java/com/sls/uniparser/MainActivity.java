@@ -157,14 +157,21 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-            int tmp = URL.indexOf("/",URL.length()-1);
+            int tmp = URL.lastIndexOf("/");
 
-            if  (tmp != -1)
+            if  (tmp == URL.length()-1)
                     URL = URL.substring(0,URL.length()-1);
 
-            String URL_sub = "/";
+            tmp = URL.indexOf("/",LEN_URL_PROTOCOL);
+            String URL_sub="";
+            if (tmp != -1) {
+                URL_sub = URL.substring(tmp,URL.length());
+                URL = URL.substring(0, tmp);
+            }
+            URL_sub = URL_sub.concat("/");
+
             //URL = URL.replace(URL_sub,"");
-            Log.d("TAG", URL+URL_sub);
+            Log.d("TAG", URL+" "+URL_sub);
             mParser = new Parser(new CustomUrl(URL, URL_sub), mDepthParsing);   // (URL for first run, maximal depth for parsing)
             mParser.execute();
             startParsView();
