@@ -1,9 +1,6 @@
 package com.sls.uniparser;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.support.annotation.UiThread;
 import android.support.v7.app.AppCompatActivity;
@@ -19,15 +16,12 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.net.InetAddress;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutionException;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
 
     private Button mButtonControl;
     private ProgressBar mProgress;
-    private ListView mListViewEmails;
     private TextView mProgressText;
     private Spinner mSpinner;
     private EditText mEditUrl;
@@ -229,7 +222,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void run() {         //Run every TIMER_QUANT & update ListView
-
 
             runOnUiThread(new Runnable() {
                 @UiThread
