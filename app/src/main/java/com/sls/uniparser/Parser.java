@@ -2,7 +2,6 @@ package com.sls.uniparser;
 
 
 import android.os.AsyncTask;
-import android.util.Log;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -83,10 +82,8 @@ public class Parser  extends AsyncTask<Void,Void,Boolean>{
     {
         super.onCancelled();
         for(ThreadParser tmp : mThreadList)
-        {
-            Log.d("PARSER3", tmp.getName() + " should be interrupt");
-            tmp.stopIt();
-        }
+              tmp.stopIt();
+
 
         setThisNull();
     }

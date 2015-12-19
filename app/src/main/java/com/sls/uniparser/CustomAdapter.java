@@ -6,8 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
-
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -39,15 +37,6 @@ public class CustomAdapter extends BaseAdapter {
         return it.next();
     }
 
-    public void updateListView(String newEmail)
-    {
-        ArrayList<String> tmp = new ArrayList<>();
-        tmp.addAll(mCurrentSetEmail);
-        tmp.add(newEmail);
-        mCurrentSetEmail.clear();
-        mCurrentSetEmail.addAll(tmp);
-        notifyDataSetChanged();
-    }
 
     @Override
     public long getItemId(int position) {

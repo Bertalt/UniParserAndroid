@@ -12,4 +12,5 @@
     <string name="text_progress">Parsing of site…</string>
     <string name="spinnerPromt">Depth of parsing</string>
     <string name="toastDepthError">Select depth of parsing</string>
+    <string name="toastNothingFound">Nothing found</string>
 </resources>

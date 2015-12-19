@@ -1,7 +1,5 @@
 package com.sls.uniparser;
 
-import android.util.Log;
-
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -15,7 +13,7 @@ public class ThreadParser extends Thread  {
     private int mTaskDepth;
     private int mCurrentDepth;
     private int mThreadId;
-    ParsingWork mParseingWork;
+    private  ParsingWork mParseingWork;
     private boolean isInterrupt = false;
     public ThreadParser( LinkedHashSet<CustomUrl> task, int depth, int thread_id)
     {
@@ -42,10 +40,8 @@ public class ThreadParser extends Thread  {
         while (!blockingTask.isEmpty())
         {
             if ( isInterrupt )
-        {
-            Log.d(TAG_THREAD,getName()+" was interrupt");
             return true;
-        }
+
             mParseingWork = new ParsingWork(blockingTask.poll());
             mSetForNextStep.addAll( mParseingWork.goAhead());//ParsingWork.goAhead() return list of links for next step
 

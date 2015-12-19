@@ -103,6 +103,9 @@ public class MainActivity extends AppCompatActivity {
         mCustomAdapter = new CustomAdapter(this,mSetForList);
 
         lvEmail.setAdapter(mCustomAdapter);
+
+        mTimer = new Timer();
+        mMyTimerTask = new MyTimerTask();
     }
 
     private void initSpinner()
@@ -163,11 +166,12 @@ public class MainActivity extends AppCompatActivity {
             }
             URL_sub = URL_sub.concat("/");
 
-            //URL = URL.replace(URL_sub,"");
-            Log.d("TAG", URL+" "+URL_sub);
+
+           // Log.d("TAG", URL+" "+URL_sub);
             mParser = new Parser(new CustomUrl(URL, URL_sub), mDepthParsing);   // (URL for first run, maximal depth for parsing)
             mParser.execute();
             startParsView();
+            
             mTimer = new Timer();
             mMyTimerTask = new MyTimerTask();
             mTimer.schedule(mMyTimerTask, TIMER_DELAY, TIMER_QUANT);
@@ -181,18 +185,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-    public void startParsView()         //prepare UI elements before parsing
-    {
-        mProgressText.setVisibility(View.VISIBLE);
-        mProgressText.setText(getResources().getString(R.string.text_progress));
-        mProgress.setVisibility(View.VISIBLE);
-        mEditUrl.setEnabled(isStart);
-        mButtonControl.setText(getResources().getText(R.string.btnStop));
-        mSynchronSet.clear();
-        mCustomAdapter.notifyDataSetChanged();
-      //  mButtonControl.setEnabled(false);
-    }
 
     public void stopPars()              //prepare UI & AsyncTask after parsing
     {
@@ -210,6 +202,18 @@ public class MainActivity extends AppCompatActivity {
             }
                 isStart = false;
         }
+
+    public void startParsView()         //prepare UI elements before parsing
+    {
+        mProgressText.setVisibility(View.VISIBLE);
+        mProgressText.setText(getResources().getString(R.string.text_progress));
+        mProgress.setVisibility(View.VISIBLE);
+        mEditUrl.setEnabled(isStart);
+        mButtonControl.setText(getResources().getText(R.string.btnStop));
+        mSynchronSet.clear();
+        mCustomAdapter.notifyDataSetChanged();
+        //  mButtonControl.setEnabled(false);
+    }
 
 
     private boolean isNetworkConnected() {

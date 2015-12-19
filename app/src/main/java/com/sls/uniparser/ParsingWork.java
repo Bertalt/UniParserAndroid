@@ -2,8 +2,6 @@ package com.sls.uniparser;
 
 
 import android.support.annotation.UiThread;
-import android.util.Log;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -76,14 +74,15 @@ public class ParsingWork {
 
             if(tmp.contains(mURL.toString())&& !tmp.equals(mURL.toString()))    //проверяем является ли ссылка дочерней относительно исходной
                 if(foundLinks.add(new CustomUrl(mURL.getHome(),found)))
-                    Log.d(TAG_LINKS, mURL.getHome()+found);
+                    ;  //  Log.d(TAG_LINKS, mURL.getHome()+found)
+
         }
 
         matcher_dot = PATTERN_EMAIL.matcher(s);             //find emails
 
         while(matcher_dot.find())        {
            if (addToList(s.substring(matcher_dot.start(), matcher_dot.end())))
-                 Log.d(TAG_EMAILS, s.substring(matcher_dot.start(), matcher_dot.end()));
+             ;//    Log.d(TAG_EMAILS, s.substring(matcher_dot.start(), matcher_dot.end()));
         }
     }
 

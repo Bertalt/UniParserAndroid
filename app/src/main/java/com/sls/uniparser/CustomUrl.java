@@ -1,8 +1,6 @@
 package com.sls.uniparser;
 
-/**
- * Created by Serg on 09.12.2015.
- */
+
 public class CustomUrl {
 
     private String mHome;
