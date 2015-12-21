@@ -5,7 +5,6 @@ import android.net.ConnectivityManager;
 import android.support.annotation.UiThread;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -16,6 +15,8 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,7 +27,7 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity {
 
 
-    final int TIMER_QUANT = 1000;    // for timer task (ms)
+    final int TIMER_QUANT = 10000;    // for timer task (ms)
     final int TIMER_DELAY = 100;     //  .... (ms)
     final int MIN_LEN_URL=11;
     final int LEN_URL_PROTOCOL = 8;
@@ -38,8 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText mEditUrl;
 
     private static CustomAdapter mCustomAdapter;
-    private HashSet<String> mSetEmails;
-    private HashSet<String> mSetForList;
+    private ArrayList<String> mListEmails;
     public static Set<String> mSynchronSet;
     private Parser mParser;
 
@@ -95,14 +95,14 @@ public class MainActivity extends AppCompatActivity {
     }
     private void initAdapter(){
 
-        mSetEmails = new HashSet<String>();
-        mSynchronSet = Collections.synchronizedSet(mSetEmails);
+        mSynchronSet = Collections.synchronizedSet(new HashSet<String>());
 
         ListView lvEmail = (ListView)findViewById(R.id.listEmail);
-        mSetForList = new HashSet<>();
-        mCustomAdapter = new CustomAdapter(this,mSetForList);
+        mCustomAdapter = new CustomAdapter(this);
 
         lvEmail.setAdapter(mCustomAdapter);
+        mListEmails = mCustomAdapter.getAdapterList();
+
 
         mTimer = new Timer();
         mMyTimerTask = new MyTimerTask();
@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
             mParser = new Parser(new CustomUrl(URL, URL_sub), mDepthParsing);   // (URL for first run, maximal depth for parsing)
             mParser.execute();
             startParsView();
-            
+
             mTimer = new Timer();
             mMyTimerTask = new MyTimerTask();
             mTimer.schedule(mMyTimerTask, TIMER_DELAY, TIMER_QUANT);
@@ -232,8 +232,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                    if ( mCustomAdapter!= null) {
-                       mSetForList.clear();
-                       mSetForList.addAll(mSynchronSet);
+                       mListEmails.clear();
+                       mListEmails.addAll(mSynchronSet);
                        mCustomAdapter.notifyDataSetChanged();
                    }
                     if (mParser!=null)
