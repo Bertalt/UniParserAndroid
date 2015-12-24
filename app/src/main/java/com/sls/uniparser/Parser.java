@@ -82,8 +82,10 @@ public class Parser  extends AsyncTask<Void,Void,Boolean>{
     {
         super.onCancelled();
         for(ThreadParser tmp : mThreadList)
-              tmp.stopIt();
-
+        {
+            if (!tmp.isInterrupted())
+            tmp.stopIt();
+        }
 
         setThisNull();
     }
@@ -105,6 +107,7 @@ public class Parser  extends AsyncTask<Void,Void,Boolean>{
     @Override
     protected void onPostExecute(Boolean result) {
         super.onPostExecute(result);
+        setThisNull();
         this.cancel(true);
 
     }
@@ -113,9 +116,12 @@ public class Parser  extends AsyncTask<Void,Void,Boolean>{
     {
         mExecutor = null;
         mURL = null;
+        firstStep.clear();
         firstStep = null;
+        mThreadList.clear();
         mThreadList = null;
         Thread.currentThread().interrupt();
+        System.gc();
     }
 
 }

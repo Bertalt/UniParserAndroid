@@ -13,23 +13,23 @@ public class ThreadParser extends Thread  {
     private int mTaskDepth;
     private int mCurrentDepth;
     private int mThreadId;
-    private  ParsingWork mParseingWork;
     private boolean isInterrupt = false;
     public ThreadParser( LinkedHashSet<CustomUrl> task, int depth, int thread_id)
     {
         mSetForNextStep = new LinkedHashSet<>();
-        mSetForNextStep.addAll(task);
-        setQueueTask(mSetForNextStep);
+        blockingTask = new ArrayBlockingQueue<>(task.size());
+        setQueueTask(task);
         mTaskDepth = depth;
         mCurrentDepth =0;
         mThreadId = thread_id;
+
     }
 
     private void setQueueTask(LinkedHashSet<CustomUrl>task)
     {
         if (task!= null)
             if(task.size()>0) {
-                blockingTask = new ArrayBlockingQueue<>(task.size());
+                blockingTask.clear();
                 blockingTask.addAll(task);
                 mSetForNextStep.clear();
             }
@@ -42,8 +42,11 @@ public class ThreadParser extends Thread  {
             if ( isInterrupt )
             return true;
 
-            mParseingWork = new ParsingWork(blockingTask.poll());
-            mSetForNextStep.addAll( mParseingWork.goAhead());//ParsingWork.goAhead() return list of links for next step
+            ParsingWork mParseingWork = new ParsingWork(blockingTask.poll());
+            LinkedHashSet<CustomUrl> tmp =  new LinkedHashSet<>();
+            tmp =  mParseingWork.goAhead();
+            if(tmp != null)
+            mSetForNextStep.addAll(tmp);//ParsingWork.goAhead() return list of links for next step
 
         }
 
@@ -52,6 +55,7 @@ public class ThreadParser extends Thread  {
     public void stopIt()
     {
         isInterrupt  = true;
+
         interrupt();
     }
 
@@ -71,6 +75,27 @@ public class ThreadParser extends Thread  {
         }
         interrupt();
 
+
+    }
+
+    @Override
+    public void interrupt()
+    {
+        if (!this.isInterrupted())
+        {
+            super.interrupt();
+            setThisNull();
+        }
+    }
+
+    private void setThisNull()
+    {
+
+        mSetForNextStep.clear();
+        blockingTask.clear();
+        mSetForNextStep = null;
+        blockingTask = null;
+        System.gc();
 
     }
 

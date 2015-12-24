@@ -201,6 +201,8 @@ public class MainActivity extends AppCompatActivity {
                 mTimer = null;
             }
                 isStart = false;
+
+        System.gc();
         }
 
     public void startParsView()         //prepare UI elements before parsing
@@ -211,6 +213,7 @@ public class MainActivity extends AppCompatActivity {
         mEditUrl.setEnabled(isStart);
         mButtonControl.setText(getResources().getText(R.string.btnStop));
         mSynchronSet.clear();
+        mSynchronSet = Collections.synchronizedSet(new HashSet<String>());
         mCustomAdapter.notifyDataSetChanged();
         //  mButtonControl.setEnabled(false);
     }
