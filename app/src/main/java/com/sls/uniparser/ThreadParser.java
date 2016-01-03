@@ -57,6 +57,7 @@ public class ThreadParser extends Thread  {
     {
         isInterrupt  = true;
         interrupt();
+
     }
 
     @Override
@@ -76,6 +77,13 @@ public class ThreadParser extends Thread  {
         interrupt();
 
 
+    }
+
+    @Override
+    public void interrupt(){
+        super.interrupt();
+        mSetForNextStep.clear();
+        blockingTask.clear();
     }
 
 

@@ -8,50 +8,39 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Set;
 
 
 public class CustomAdapter extends BaseAdapter {
 
     private LayoutInflater lInflater;
-    private static Set<String> mCurrentSetEmail;
+    private ArrayList<String> mCurrentListEmail;
 
-    CustomAdapter(Context ctx, Set<String> setEmails) {
+    CustomAdapter(Context ctx) {
 
         lInflater = (LayoutInflater) ctx
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        mCurrentSetEmail = setEmails;
+        mCurrentListEmail = new ArrayList<>();
     }
 
     @Override
     public int getCount() {
-        return mCurrentSetEmail.size();
+        return mCurrentListEmail.size();
     }
 
     @Override
     public Object getItem(int position) {
-        Iterator<String> it = mCurrentSetEmail.iterator();
-        for (int i = 0; i < position; i++) {
-            if (it.hasNext())
-                it.next();
-        }
-        return it.next();
+
+        return mCurrentListEmail.get(position);
     }
 
-    public void updateListView(String newEmail)
-    {
-        ArrayList<String> tmp = new ArrayList<>();
-        tmp.addAll(mCurrentSetEmail);
-        tmp.add(newEmail);
-        mCurrentSetEmail.clear();
-        mCurrentSetEmail.addAll(tmp);
-        notifyDataSetChanged();
-    }
 
     @Override
     public long getItemId(int position) {
         return position;
+    }
+    public ArrayList<String> getAdapterList()
+    {
+        return mCurrentListEmail;
     }
 
 

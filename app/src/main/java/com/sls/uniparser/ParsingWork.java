@@ -22,7 +22,7 @@ public class ParsingWork {
     final String TAG_LINKS = "found_links";
     final String TAG_EMAILS = "found_emails";
     private CustomUrl mURL;
-    private final int BUFFER_SIZE = 100000;     //Buffer for parts of site
+    private final int BUFFER_SIZE = 10000;     //Buffer for parts of site
     private Pattern PATTERN_URL_SUB;
     private Pattern PATTERN_EMAIL;
     private LinkedHashSet <CustomUrl> foundLinks;
@@ -43,21 +43,22 @@ public class ParsingWork {
     public LinkedHashSet<CustomUrl> goAhead()
     {
         BufferedReader buffer;
-         try {
-        StringBuilder mStringBuffer = new StringBuilder();
-        if((buffer = getBufferFromUrl(mURL.toString()))==null) { //Cannot connect to links
-            return new LinkedHashSet<>();// return empty list
-        }
+        try {
+            //  CharBuilder mStringBuffer = new CharBuilder();
+            if((buffer = getBufferFromUrl(mURL.toString()))==null) { //Cannot connect to links
+                return new LinkedHashSet<>();// return empty list
+            }
 
-        while (true) {                  //Parsing html on several parts
-            char [] nextPart= new char [BUFFER_SIZE];
+            while (true) {                  //Parsing html on several parts
+                char [] nextPart= new char [BUFFER_SIZE];
                 if (buffer.read(nextPart)== -1)
                     break;
-                mStringBuffer.append(nextPart);
-                checkStringByPatterns(mStringBuffer.toString());
+                checkStringByPatterns(String.valueOf(nextPart));
 
-        }
-        buffer.close();
+            }
+
+
+            buffer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -82,9 +83,10 @@ public class ParsingWork {
         matcher_dot = PATTERN_EMAIL.matcher(s);             //find emails
 
         while(matcher_dot.find())        {
-           if (addToList(s.substring(matcher_dot.start(), matcher_dot.end())))
-                 Log.d(TAG_EMAILS, s.substring(matcher_dot.start(), matcher_dot.end()));
+            if (addToList(s.substring(matcher_dot.start(), matcher_dot.end())))
+                Log.d(TAG_EMAILS, s.substring(matcher_dot.start(), matcher_dot.end()));
         }
+        s = "";
     }
 
     @UiThread
