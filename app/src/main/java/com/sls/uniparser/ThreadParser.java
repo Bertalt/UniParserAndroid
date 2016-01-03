@@ -1,5 +1,7 @@
 package com.sls.uniparser;
 
+import android.util.Log;
+
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -13,23 +15,23 @@ public class ThreadParser extends Thread  {
     private int mTaskDepth;
     private int mCurrentDepth;
     private int mThreadId;
+    ParsingWork mParseingWork;
     private boolean isInterrupt = false;
     public ThreadParser( LinkedHashSet<CustomUrl> task, int depth, int thread_id)
     {
         mSetForNextStep = new LinkedHashSet<>();
-        blockingTask = new ArrayBlockingQueue<>(task.size());
-        setQueueTask(task);
+        mSetForNextStep.addAll(task);
+        setQueueTask(mSetForNextStep);
         mTaskDepth = depth;
         mCurrentDepth =0;
         mThreadId = thread_id;
-
     }
 
     private void setQueueTask(LinkedHashSet<CustomUrl>task)
     {
         if (task!= null)
             if(task.size()>0) {
-                blockingTask.clear();
+                blockingTask = new ArrayBlockingQueue<>(task.size());
                 blockingTask.addAll(task);
                 mSetForNextStep.clear();
             }
@@ -40,13 +42,12 @@ public class ThreadParser extends Thread  {
         while (!blockingTask.isEmpty())
         {
             if ( isInterrupt )
+        {
+            Log.d(TAG_THREAD,getName()+" was interrupt");
             return true;
-
-            ParsingWork mParseingWork = new ParsingWork(blockingTask.poll());
-            LinkedHashSet<CustomUrl> tmp =  new LinkedHashSet<>();
-            tmp =  mParseingWork.goAhead();
-            if(tmp != null)
-            mSetForNextStep.addAll(tmp);//ParsingWork.goAhead() return list of links for next step
+        }
+            mParseingWork = new ParsingWork(blockingTask.poll());
+            mSetForNextStep.addAll( mParseingWork.goAhead());//ParsingWork.goAhead() return list of links for next step
 
         }
 
@@ -55,7 +56,6 @@ public class ThreadParser extends Thread  {
     public void stopIt()
     {
         isInterrupt  = true;
-
         interrupt();
     }
 
@@ -75,27 +75,6 @@ public class ThreadParser extends Thread  {
         }
         interrupt();
 
-
-    }
-
-    @Override
-    public void interrupt()
-    {
-        if (!this.isInterrupted())
-        {
-            super.interrupt();
-            setThisNull();
-        }
-    }
-
-    private void setThisNull()
-    {
-
-        mSetForNextStep.clear();
-        blockingTask.clear();
-        mSetForNextStep = null;
-        blockingTask = null;
-        System.gc();
 
     }
 

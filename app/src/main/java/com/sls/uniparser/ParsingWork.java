@@ -2,6 +2,8 @@ package com.sls.uniparser;
 
 
 import android.support.annotation.UiThread;
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,7 +26,8 @@ public class ParsingWork {
     private Pattern PATTERN_URL_SUB;
     private Pattern PATTERN_EMAIL;
     private LinkedHashSet <CustomUrl> foundLinks;
-
+    public static final String REG_EX_URL = "^*((https?|ftp)\\:\\/\\/)?(\\w{1})((\\.\\w)|(\\w))*\\.([a-z]{2,6})(\\/[a-z0-9_/]*)$*";
+    public static final String REG_EX_TEL =  "^*((\\+38)?\\(?0\\d{2}?\\)?(\\d{7}|\\d{3}.\\d{2}.\\d{2}))\\+*";
     public static final String REG_EX_EMAIL = "^*([a-z0-9_-]+\\.)*[a-z0-9_-]+@[a-z0-9_-]+(\\.[a-z0-9_-]+)*\\.[a-z]{2,6}$*";
     public static final String REG_EX_URL_SUB = "href=\"^?([a-z0-9_@?^=%&/~+#-]S*)*$*";
 
@@ -37,36 +40,27 @@ public class ParsingWork {
         foundLinks = new LinkedHashSet<>();
     }
 
-    public LinkedHashSet<CustomUrl> goAhead(){
-        BufferedReader buffer = null;
+    public LinkedHashSet<CustomUrl> goAhead()
+    {
+        BufferedReader buffer;
          try {
         StringBuilder mStringBuffer = new StringBuilder();
         if((buffer = getBufferFromUrl(mURL.toString()))==null) { //Cannot connect to links
-            return null;// return empty list
+            return new LinkedHashSet<>();// return empty list
         }
-             char [] nextPart;
+
         while (true) {                  //Parsing html on several parts
-             nextPart= new char [BUFFER_SIZE];
+            char [] nextPart= new char [BUFFER_SIZE];
                 if (buffer.read(nextPart)== -1)
                     break;
                 mStringBuffer.append(nextPart);
                 checkStringByPatterns(mStringBuffer.toString());
 
         }
-            nextPart = null;
-             buffer.close();
-
+        buffer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        finally {
-             if (buffer != null)
-                 try {
-                     buffer.close();
-                     System.gc();
-                 } catch (IOException ignored) {}
-         }
-
 
         return foundLinks;
     }
@@ -82,26 +76,25 @@ public class ParsingWork {
 
             if(tmp.contains(mURL.toString())&& !tmp.equals(mURL.toString()))    //проверяем является ли ссылка дочерней относительно исходной
                 if(foundLinks.add(new CustomUrl(mURL.getHome(),found)))
-                    ;  //  Log.d(TAG_LINKS, mURL.getHome()+found)
-
+                    Log.d(TAG_LINKS, mURL.getHome()+found);
         }
 
         matcher_dot = PATTERN_EMAIL.matcher(s);             //find emails
 
         while(matcher_dot.find())        {
            if (addToList(s.substring(matcher_dot.start(), matcher_dot.end())))
-                ;// Log.d(TAG_EMAILS, s.substring(matcher_dot.start(), matcher_dot.end()));
+                 Log.d(TAG_EMAILS, s.substring(matcher_dot.start(), matcher_dot.end()));
         }
     }
 
     @UiThread
     private boolean addToList(String s)    {     return MainActivity.mSynchronSet.add(s);    }
 
-    private BufferedReader getBufferFromUrl(String link) {
-
+    private BufferedReader getBufferFromUrl(String link)
+    {
         URL url;
         HttpURLConnection httpcon;
-        InputStreamReader ISR = null;
+        InputStreamReader ISR;
         try {
             url = new URL(link);
             httpcon = (HttpURLConnection)url.openConnection();
@@ -116,8 +109,6 @@ public class ParsingWork {
             e.printStackTrace();
             return null;
         }
-
-
 
         return new BufferedReader(ISR);
     }
