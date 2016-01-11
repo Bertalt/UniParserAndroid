@@ -82,8 +82,6 @@ public class ThreadParser extends Thread  {
     @Override
     public void interrupt(){
         super.interrupt();
-        mSetForNextStep.clear();
-        blockingTask.clear();
     }
 
 
